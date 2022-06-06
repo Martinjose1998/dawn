@@ -106,22 +106,13 @@
             "type": "announcement",
             "settings": {
               "text": "Welcome to our store",
-              "color_scheme": "accent-1",
-              "link": ""
-            }
-          },
-          "2057d4dd-b60b-4483-9d28-da0531a51292": {
-            "type": "announcement",
-            "settings": {
-              "text": "Welcome to our store 2",
-              "color_scheme": "accent-1",
+              "color_scheme": "background-2",
               "link": ""
             }
           }
         },
         "block_order": [
-          "announcement-bar-0",
-          "2057d4dd-b60b-4483-9d28-da0531a51292"
+          "announcement-bar-0"
         ],
         "settings": {
         }
