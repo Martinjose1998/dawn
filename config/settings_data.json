@@ -188,10 +188,55 @@
         "settings": {
           "color_scheme": "background-1"
         }
+      },
+      "image_banner": {
+        "type": "image-banner",
+        "blocks": {
+          "heading": {
+            "type": "heading",
+            "settings": {
+              "heading": "Shop Our Collection",
+              "heading_size": "h0"
+            }
+          },
+          "text": {
+            "type": "text",
+            "settings": {
+              "text": "Discover our amazing products and find exactly what you're looking for.",
+              "text_style": "body"
+            }
+          },
+          "button": {
+            "type": "buttons",
+            "settings": {
+              "button_label_1": "Shop All Products",
+              "button_link_1": "/collections/all",
+              "button_style_secondary_1": false,
+              "button_label_2": "",
+              "button_link_2": "",
+              "button_style_secondary_2": false
+            }
+          }
+        },
+        "block_order": [
+          "heading",
+          "text",
+          "button"
+        ],
+        "settings": {
+          "image_height": "large",
+          "desktop_content_position": "middle-center",
+          "show_text_box": true,
+          "desktop_content_alignment": "center",
+          "color_scheme": "background-1",
+          "mobile_content_alignment": "center",
+          "stack_images_on_mobile": true,
+          "show_text_below": true
+        }
       }
     },
     "content_for_index": [
-
+      "image_banner"
     ]
   },
   "presets": {
