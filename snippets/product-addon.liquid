@@ -66,7 +66,7 @@ class ProductAddon extends HTMLElement {
     // Create add-on specific HTML for each product
     const addonsHTML = Array.from(products).slice(0, 3).map(productItem => {
       const productCard = productItem.querySelector('.card');
-      const productLink = productCard.querySelector('.card__heading a');
+      const productLink = productCard.querySelector('.card__heading a, .full-unstyled-link');
       const productImage = productCard.querySelector('img');
       const productPrice = productCard.querySelector('.price');
       const productTitle = productLink ? productLink.textContent.trim() : '';
@@ -74,7 +74,18 @@ class ProductAddon extends HTMLElement {
       
       // Extract variant ID from quick add form if available
       const quickAddForm = productCard.querySelector('form[data-type="add-to-cart-form"]');
-      const variantId = quickAddForm ? quickAddForm.querySelector('input[name="id"]').value : '';
+      let variantId = '';
+      if (quickAddForm) {
+        const variantInput = quickAddForm.querySelector('input[name="id"]');
+        variantId = variantInput ? variantInput.value : '';
+      }
+      
+      // If no variant ID from quick add, try to extract product ID from URL for first variant
+      if (!variantId && productUrl) {
+        const urlParts = productUrl.split('/');
+        const productHandle = urlParts[urlParts.length - 1];
+        // We'll use the product URL as fallback and let backend handle first available variant
+      }
       
       return `
         <div class="product-addon__item">
@@ -132,6 +143,17 @@ class ProductAddon extends HTMLElement {
         
         try {
           const formData = new FormData(form);
+          
+          // Add sections for cart update if cart drawer or notification exists
+          const cartDrawer = document.querySelector('cart-drawer');
+          const cartNotification = document.querySelector('cart-notification');
+          const cart = cartDrawer || cartNotification;
+          
+          if (cart && cart.getSectionsToRender) {
+            formData.append('sections', cart.getSectionsToRender().map((section) => section.id));
+            formData.append('sections_url', window.location.pathname);
+          }
+          
           const response = await fetch(window.routes.cart_add_url, {
             method: 'POST',
             headers: {
