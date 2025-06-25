@@ -1,0 +1,134 @@
+{% comment %}
+  Chat Agent Widget Snippet
+  
+  This snippet renders a floating chat agent widget that can be included
+  in any page layout. It provides instant customer support through
+  an AI-powered chat interface.
+  
+  Usage:
+  {% render 'chat-agent-widget' %}
+  
+  Optional parameters:
+  - agent_name: Custom name for the agent (default: "Support Agent")
+  - welcome_message: Custom welcome message
+  - show_on_mobile: Whether to show on mobile (default: true)
+  - position: 'bottom-right', 'bottom-left' (default: 'bottom-right')
+{% endcomment %}
+
+{{ 'component-chat-agent.css' | asset_url | stylesheet_tag }}
+
+{%- assign agent_name = agent_name | default: 'Support Agent' -%}
+{%- assign welcome_message = welcome_message | default: 'Hello! How can I help you today?' -%}
+{%- assign show_on_mobile = show_on_mobile | default: true -%}
+{%- assign position = position | default: 'bottom-right' -%}
+
+<div class="chat-agent-widget" data-position="{{ position }}" {% unless show_on_mobile %}data-hide-mobile{% endunless %}>
+  <div class="chat-agent-container minimized" data-chat-agent>
+    <div class="chat-agent-header">
+      <div class="chat-agent-status">
+        <span class="status-indicator online"></span>
+        <span class="status-text">{{ agent_name }} - Online</span>
+      </div>
+      <button class="chat-agent-minimize" aria-label="Minimize chat">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M4 12L16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="chat-agent-messages" id="chat-messages">
+      <div class="message agent-message">
+        <div class="message-content">
+          <p>{{ welcome_message }}</p>
+        </div>
+        <div class="message-time">Just now</div>
+      </div>
+    </div>
+
+    <div class="chat-agent-quick-actions">
+      <h4>Quick Actions</h4>
+      <div class="quick-action-buttons">
+        <button class="quick-action-btn" data-action="order-status">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M14 6L8 12L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Order Status
+        </button>
+        <button class="quick-action-btn" data-action="shipping">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M1 5H11L13 7V11H11.5C11.5 12.1 10.6 13 9.5 13S7.5 12.1 7.5 11H4.5C4.5 12.1 3.6 13 2.5 13S0.5 12.1 0.5 11H1V5Z" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          Shipping Info
+        </button>
+        <button class="quick-action-btn" data-action="returns">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 7L1 9L3 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M1 9H11C12.1 9 13 8.1 13 7V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Returns
+        </button>
+        <button class="quick-action-btn" data-action="product-help">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+            <path d="M6 6C6 4.9 6.9 4 8 4S10 4.9 10 6C10 7 9 7.5 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="8" cy="11" r="1" fill="currentColor"/>
+          </svg>
+          Product Help
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-agent-input">
+      <form class="chat-form" data-chat-form>
+        <div class="input-wrapper">
+          <input 
+            type="text" 
+            class="chat-input" 
+            placeholder="Type your message..."
+            data-chat-input
+            autocomplete="off"
+          >
+          <button type="submit" class="send-button" aria-label="Send message">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M18 2L2 8L8 10L10 18L18 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Chat Agent Toggle Button (for when minimized) -->
+  <button class="chat-agent-toggle visible" data-chat-toggle aria-label="Open chat">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="notification-badge" data-unread-count style="display: none;"></span>
+  </button>
+</div>
+
+<style>
+  .chat-agent-widget[data-position="bottom-left"] .chat-agent-toggle {
+    left: 2rem;
+    right: auto;
+  }
+  
+  .chat-agent-widget[data-position="bottom-left"] .chat-agent-container {
+    left: 0;
+    right: auto;
+  }
+  
+  .chat-agent-widget[data-hide-mobile] .chat-agent-container,
+  .chat-agent-widget[data-hide-mobile] .chat-agent-toggle {
+    display: none;
+  }
+  
+  @media screen and (min-width: 750px) {
+    .chat-agent-widget[data-hide-mobile] .chat-agent-container,
+    .chat-agent-widget[data-hide-mobile] .chat-agent-toggle {
+      display: block;
+    }
+  }
+</style>
+
+<script src="{{ 'chat-agent.js' | asset_url }}" defer="defer"></script>
