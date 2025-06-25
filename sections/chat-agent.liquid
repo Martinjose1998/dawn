@@ -1,0 +1,218 @@
+{{ 'component-chat-agent.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="chat-agent-section section-{{ section.id }}-padding">
+  <div class="page-width">
+    {% if section.settings.heading != blank %}
+      <div class="section-header">
+        <h2 class="h1">{{ section.settings.heading }}</h2>
+        {% if section.settings.description != blank %}
+          <p class="section-description">{{ section.settings.description }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="chat-agent-container" data-chat-agent>
+      <div class="chat-agent-header">
+        <div class="chat-agent-status">
+          <span class="status-indicator online"></span>
+          <span class="status-text">{{ section.settings.agent_name | default: 'Support Agent' }} - Online</span>
+        </div>
+        <button class="chat-agent-minimize" aria-label="Minimize chat">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 12L16 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="chat-agent-messages" id="chat-messages">
+        <div class="message agent-message">
+          <div class="message-content">
+            <p>{{ section.settings.welcome_message | default: 'Hello! How can I help you today?' }}</p>
+          </div>
+          <div class="message-time">Just now</div>
+        </div>
+      </div>
+
+      <div class="chat-agent-quick-actions">
+        <h4>Quick Actions</h4>
+        <div class="quick-action-buttons">
+          {% if section.settings.show_order_status %}
+            <button class="quick-action-btn" data-action="order-status">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M14 6L8 12L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Order Status
+            </button>
+          {% endif %}
+          {% if section.settings.show_shipping_info %}
+            <button class="quick-action-btn" data-action="shipping">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M1 5H11L13 7V11H11.5C11.5 12.1 10.6 13 9.5 13S7.5 12.1 7.5 11H4.5C4.5 12.1 3.6 13 2.5 13S0.5 12.1 0.5 11H1V5Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              Shipping Info
+            </button>
+          {% endif %}
+          {% if section.settings.show_returns %}
+            <button class="quick-action-btn" data-action="returns">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 7L1 9L3 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M1 9H11C12.1 9 13 8.1 13 7V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Returns
+            </button>
+          {% endif %}
+          {% if section.settings.show_product_help %}
+            <button class="quick-action-btn" data-action="product-help">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/>
+                <path d="M6 6C6 4.9 6.9 4 8 4S10 4.9 10 6C10 7 9 7.5 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="8" cy="11" r="1" fill="currentColor"/>
+              </svg>
+              Product Help
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="chat-agent-input">
+        <form class="chat-form" data-chat-form>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              class="chat-input" 
+              placeholder="{{ section.settings.input_placeholder | default: 'Type your message...' }}"
+              data-chat-input
+              autocomplete="off"
+            >
+            <button type="submit" class="send-button" aria-label="Send message">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M18 2L2 8L8 10L10 18L18 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Chat Agent Toggle Button (for when minimized) -->
+    <button class="chat-agent-toggle" data-chat-toggle aria-label="Open chat">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="notification-badge" data-unread-count style="display: none;"></span>
+    </button>
+  </div>
+</div>
+
+<script src="{{ 'chat-agent.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Chat Agent",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Customer Support",
+      "label": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Description",
+      "info": "Optional description text below the heading"
+    },
+    {
+      "type": "text",
+      "id": "agent_name",
+      "default": "Support Agent",
+      "label": "Agent Name"
+    },
+    {
+      "type": "textarea",
+      "id": "welcome_message",
+      "default": "Hello! How can I help you today?",
+      "label": "Welcome Message"
+    },
+    {
+      "type": "text",
+      "id": "input_placeholder",
+      "default": "Type your message...",
+      "label": "Input Placeholder"
+    },
+    {
+      "type": "header",
+      "content": "Quick Actions"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_order_status",
+      "default": true,
+      "label": "Show Order Status Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shipping_info",
+      "default": true,
+      "label": "Show Shipping Info Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_returns",
+      "default": true,
+      "label": "Show Returns Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_help",
+      "default": true,
+      "label": "Show Product Help Button"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "presets": [
+    {
+      "name": "Chat Agent"
+    }
+  ]
+}
+{% endschema %}
