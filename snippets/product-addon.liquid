@@ -1,0 +1,182 @@
+{% comment %}
+    Renders product add-ons below the main Add To Cart button
+
+    Accepts:
+    - product: {Object} Main Product Liquid object
+    - section_id: {String} Section ID for unique identifiers
+
+    Usage:
+    {% render 'product-addon', product: product, section_id: section.id %}
+{% endcomment %}
+
+<product-addon class="product-addon" data-url="{{ routes.product_recommendations_url }}?section_id={{ section_id }}&product_id={{ product.id }}&limit=3">
+  <div class="product-addon__content">
+    <h3 class="product-addon__heading h5">{{ 'products.product.frequently_bought_together' | t | default: 'Frequently bought together' }}</h3>
+    <div class="product-addon__grid" id="ProductAddon-{{ section_id }}">
+      <div class="product-addon__loading">
+        <div class="loading-overlay__spinner">
+          <svg aria-hidden="true" focusable="false" role="presentation" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+            <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</product-addon>
+
+{{ 'component-product-addon.css' | asset_url | stylesheet_tag }}
+
+<script>
+class ProductAddon extends HTMLElement {
+  constructor() {
+    super();
+    this.loadAddons();
+  }
+
+  loadAddons() {
+    const url = this.dataset.url;
+    
+    fetch(url)
+      .then(response => response.text())
+      .then(text => {
+        const html = new DOMParser().parseFromString(text, 'text/html');
+        const recommendations = html.querySelector('product-recommendations');
+        
+        if (recommendations && recommendations.innerHTML.trim().length) {
+          this.renderAddons(recommendations);
+        } else {
+          this.style.display = 'none';
+        }
+      })
+      .catch(error => {
+        console.error('Error loading add-ons:', error);
+        this.style.display = 'none';
+      });
+  }
+
+  renderAddons(recommendationsElement) {
+    const grid = this.querySelector('.product-addon__grid');
+    const products = recommendationsElement.querySelectorAll('.grid__item');
+    
+    if (products.length === 0) {
+      this.style.display = 'none';
+      return;
+    }
+
+    // Create add-on specific HTML for each product
+    const addonsHTML = Array.from(products).slice(0, 3).map(productItem => {
+      const productCard = productItem.querySelector('.card');
+      const productLink = productCard.querySelector('.card__heading a');
+      const productImage = productCard.querySelector('img');
+      const productPrice = productCard.querySelector('.price');
+      const productTitle = productLink ? productLink.textContent.trim() : '';
+      const productUrl = productLink ? productLink.href : '';
+      
+      // Extract variant ID from quick add form if available
+      const quickAddForm = productCard.querySelector('form[data-type="add-to-cart-form"]');
+      const variantId = quickAddForm ? quickAddForm.querySelector('input[name="id"]').value : '';
+      
+      return `
+        <div class="product-addon__item">
+          <div class="product-addon__image">
+            ${productImage ? 
+              `<img src="${productImage.src}" alt="${productTitle}" loading="lazy" width="80" height="80">` : 
+              '<div class="product-addon__placeholder"></div>'
+            }
+          </div>
+          <div class="product-addon__details">
+            <h4 class="product-addon__title">
+              <a href="${productUrl}" class="product-addon__link">${productTitle}</a>
+            </h4>
+            <div class="product-addon__price">${productPrice ? productPrice.innerHTML : ''}</div>
+            ${variantId ? 
+              `<product-form class="product-addon__form">
+                <form action="${window.routes.cart_add_url}" method="post" enctype="multipart/form-data" data-type="add-to-cart-form">
+                  <input type="hidden" name="id" value="${variantId}">
+                  <button type="submit" class="product-addon__button button button--small button--secondary">
+                    <span class="product-addon__button-text">+ Add</span>
+                    <div class="loading-overlay__spinner hidden">
+                      <svg aria-hidden="true" focusable="false" role="presentation" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                        <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+                      </svg>
+                    </div>
+                  </button>
+                </form>
+              </product-form>` :
+              `<a href="${productUrl}" class="product-addon__button button button--small button--secondary">View Product</a>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    grid.innerHTML = addonsHTML;
+    this.addCartHandlers();
+  }
+
+  addCartHandlers() {
+    const forms = this.querySelectorAll('form[data-type="add-to-cart-form"]');
+    
+    forms.forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const button = form.querySelector('.product-addon__button');
+        const buttonText = button.querySelector('.product-addon__button-text');
+        const spinner = button.querySelector('.loading-overlay__spinner');
+        
+        // Show loading state
+        button.setAttribute('disabled', 'disabled');
+        buttonText.textContent = 'Adding...';
+        spinner.classList.remove('hidden');
+        
+        try {
+          const formData = new FormData(form);
+          const response = await fetch(window.routes.cart_add_url, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            buttonText.textContent = 'Added!';
+            
+            // Update cart if cart drawer or notification exists
+            const cartDrawer = document.querySelector('cart-drawer');
+            const cartNotification = document.querySelector('cart-notification');
+            
+            if (cartDrawer && cartDrawer.renderContents) {
+              cartDrawer.renderContents(data);
+            } else if (cartNotification && cartNotification.renderContents) {
+              cartNotification.setActiveElement(document.activeElement);
+              cartNotification.renderContents(data);
+            }
+            
+            // Reset button after delay
+            setTimeout(() => {
+              buttonText.textContent = '+ Add';
+              button.removeAttribute('disabled');
+            }, 2000);
+          } else {
+            throw new Error('Failed to add to cart');
+          }
+        } catch (error) {
+          console.error('Error adding to cart:', error);
+          buttonText.textContent = 'Error';
+          setTimeout(() => {
+            buttonText.textContent = '+ Add';
+            button.removeAttribute('disabled');
+          }, 2000);
+        } finally {
+          spinner.classList.add('hidden');
+        }
+      });
+    });
+  }
+}
+
+customElements.define('product-addon', ProductAddon);
+</script>
