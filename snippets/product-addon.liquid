@@ -9,7 +9,7 @@
     {% render 'product-addon', product: product, section_id: section.id %}
 {% endcomment %}
 
-<product-addon class="product-addon" data-url="{{ routes.product_recommendations_url }}?section_id={{ section_id }}&product_id={{ product.id }}&limit=3">
+<product-addon class="product-addon" data-url="{{ routes.product_recommendations_url }}?section_id=product-recommendations&product_id={{ product.id }}&limit=3">
   <div class="product-addon__content">
     <h3 class="product-addon__heading h5">{{ 'products.product.frequently_bought_together' | t | default: 'Frequently bought together' }}</h3>
     <div class="product-addon__grid" id="ProductAddon-{{ section_id }}">
@@ -41,6 +41,7 @@ class ProductAddon extends HTMLElement {
       .then(text => {
         const html = new DOMParser().parseFromString(text, 'text/html');
         const recommendations = html.querySelector('product-recommendations');
+        console.log(html);
         console.log(recommendations);
         if (recommendations) {
           this.renderAddons(recommendations);
