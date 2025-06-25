@@ -24,7 +24,7 @@ class CartDrawer extends HTMLElement {
   }
 
   open(triggeredBy) {
-    if (triggeredBy) this.setActiveElement(triggeredBy);
+    if (triggeredBy) this.setActiveElement(triggeredByN);
     const cartDrawerNote = this.querySelector('[id^="Details-"] summary');
     if (cartDrawerNote && !cartDrawerNote.hasAttribute('role')) this.setSummaryAccessibility(cartDrawerNote);
     // here the animation doesn't seem to always get triggered. A timeout seem to help
