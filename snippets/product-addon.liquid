@@ -41,7 +41,7 @@ class ProductAddon extends HTMLElement {
       .then(text => {
         const html = new DOMParser().parseFromString(text, 'text/html');
         const recommendations = html.querySelector('product-recommendations');
-        
+        console.log(recommendations);
         if (recommendations) {
           this.renderAddons(recommendations);
         } else {
